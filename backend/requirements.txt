@@ -5,3 +5,8 @@ psycopg[binary]
 pydantic-settings
 python-dotenv
 alembic
+passlib[argon2]
+argon2-cffi
+python-jose[cryptography]
+python-multipart
+email-validator
