@@ -10,3 +10,7 @@ argon2-cffi
 python-jose[cryptography]
 python-multipart
 email-validator
+pandas
+odfpy
+openpyxl
+xlrd>=2.0.1
