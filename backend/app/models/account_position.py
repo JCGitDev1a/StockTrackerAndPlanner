@@ -46,7 +46,7 @@ class AccountPosition(Base):
         nullable=False,
     )
 
-    quarterly_buy_enabled: Mapped[bool] = mapped_column(
+    recurring_buy_enabled: Mapped[bool] = mapped_column(
         Boolean,
         default=True,
         nullable=False,

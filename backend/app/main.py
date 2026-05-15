@@ -6,14 +6,15 @@ from app.api.auth import router as auth_router
 from app.db.session import get_db
 
 from app.api.accounts import router as accounts_router
-
 from app.api.securities import router as securities_router
+from app.api.positions import router as positions_router
 
 app = FastAPI(title="Stock Tracker and Planner API")
 
 app.include_router(auth_router)
 app.include_router(accounts_router)
 app.include_router(securities_router)
+app.include_router(positions_router)
 
 @app.get("/health")
 def health_check():
