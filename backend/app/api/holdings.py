@@ -11,6 +11,7 @@ from app.models.security import Security
 from app.models.transaction import Transaction
 from app.models.user import User
 from app.schemas.holding import HoldingResponse
+from app.models.price_history import PriceHistory
 
 router = APIRouter(prefix="/accounts/{account_id}/holdings", tags=["holdings"])
 
@@ -59,6 +60,9 @@ def list_holdings(
                 "shares": Decimal("0"),
                 "total_basis": Decimal("0"),
                 "average_cost": None,
+                "current_price": None,
+                "market_value": None,
+                "unrealized_gain_loss": None,
             }
 
         transaction_type = transaction.type.upper()
@@ -82,6 +86,20 @@ def list_holdings(
             if holding["shares"] != Decimal("0")
             else None
         )
+
+        latest_price = (
+            db.query(PriceHistory)
+            .filter(PriceHistory.security_id == holding["security_id"])
+            .order_by(PriceHistory.price_date.desc())
+            .first()
+        )
+
+        if latest_price is not None:
+            holding["current_price"] = latest_price.price
+            holding["market_value"] = holding["shares"] * latest_price.price
+            holding["unrealized_gain_loss"] = (
+                holding["market_value"] - holding["total_basis"]
+            )
 
         results.append(HoldingResponse(**holding))
 

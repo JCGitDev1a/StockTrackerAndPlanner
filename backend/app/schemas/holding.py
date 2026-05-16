@@ -11,3 +11,6 @@ class HoldingResponse(BaseModel):
     shares: Decimal
     total_basis: Decimal | None
     average_cost: Decimal | None
+    current_price: Decimal | None
+    market_value: Decimal | None
+    unrealized_gain_loss: Decimal | None
