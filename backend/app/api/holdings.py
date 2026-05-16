@@ -58,6 +58,7 @@ def list_holdings(
                 "company": security.company,
                 "shares": Decimal("0"),
                 "total_basis": Decimal("0"),
+                "average_cost": None,
             }
 
         transaction_type = transaction.type.upper()
@@ -70,8 +71,18 @@ def list_holdings(
             holdings[security_id]["shares"] -= transaction.shares or Decimal("0")
             holdings[security_id]["total_basis"] -= transaction.cash_amount or Decimal("0")
 
-    return [
-        HoldingResponse(**holding)
-        for holding in holdings.values()
-        if holding["shares"] != Decimal("0")
-    ]
+    results = []
+
+    for holding in holdings.values():
+        if holding["shares"] == Decimal("0"):
+            continue
+
+        holding["average_cost"] = (
+            holding["total_basis"] / holding["shares"]
+            if holding["shares"] != Decimal("0")
+            else None
+        )
+
+        results.append(HoldingResponse(**holding))
+
+    return results

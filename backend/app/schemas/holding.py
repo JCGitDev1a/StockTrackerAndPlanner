@@ -10,3 +10,4 @@ class HoldingResponse(BaseModel):
     company: str
     shares: Decimal
     total_basis: Decimal | None
+    average_cost: Decimal | None
