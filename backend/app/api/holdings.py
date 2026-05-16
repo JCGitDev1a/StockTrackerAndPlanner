@@ -12,6 +12,7 @@ from app.models.transaction import Transaction
 from app.models.user import User
 from app.schemas.holding import HoldingResponse
 from app.models.price_history import PriceHistory
+from app.core.finance import quantize_money, quantize_price, quantize_shares
 
 router = APIRouter(prefix="/accounts/{account_id}/holdings", tags=["holdings"])
 
@@ -100,6 +101,13 @@ def list_holdings(
             holding["unrealized_gain_loss"] = (
                 holding["market_value"] - holding["total_basis"]
             )
+
+        holding["shares"] = quantize_shares(holding["shares"])
+        holding["total_basis"] = quantize_money(holding["total_basis"])
+        holding["average_cost"] = quantize_price(holding["average_cost"])
+        holding["current_price"] = quantize_price(holding["current_price"])
+        holding["market_value"] = quantize_money(holding["market_value"])
+        holding["unrealized_gain_loss"] = quantize_money(holding["unrealized_gain_loss"])
 
         results.append(HoldingResponse(**holding))
 
