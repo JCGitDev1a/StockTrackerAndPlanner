@@ -4,6 +4,14 @@ from pprint import pprint
 from app.services.imports.import_service import dry_run_import
 from app.services.imports.models import ImportColumnMapping
 
+from datetime import date
+
+from app.db.session import SessionLocal
+from app.services.imports.database_importer import import_holdings
+from app.services.imports.parsers.spreadsheet_parser import (
+    load_spreadsheet,
+    parse_holdings_dataframe,
+)
 
 DEFAULT_SYMBOL_COLUMN = "Sym"
 DEFAULT_COMPANY_COLUMN = "Company"
@@ -53,6 +61,25 @@ def parse_args():
         help=f"Column name containing price or basis price. Default: {DEFAULT_PRICE_COLUMN}",
     )
 
+    parser.add_argument(
+        "--commit",
+        action="store_true",
+        help="Actually import holdings into the database.",
+    )
+
+    parser.add_argument(
+        "--account-id",
+        required=False,
+        help="Account UUID for database import.",
+    )
+
+    parser.add_argument(
+        "--start-date",
+        required=False,
+        default="2026-02-08",
+        help="Opening transaction date (YYYY-MM-DD).",
+    )
+
     return parser.parse_args()
 
 
@@ -99,6 +126,43 @@ def main():
     print("\n=== VALIDATION ERRORS ===")
     pprint(result.validation_errors[:10])
 
+    if not args.commit:
+        print("\nDry-run only. No database changes made.")
+        return
+
+    if not args.account_id:
+        raise ValueError("--account-id is required with --commit")
+
+    dataframe = load_spreadsheet(
+        file_path=args.file,
+        sheet_name=args.sheet,
+    )
+
+    holdings, errors = parse_holdings_dataframe(
+        dataframe=dataframe,
+        mapping=mapping,
+    )
+
+    if errors:
+        raise ValueError(
+            f"Import contains validation errors: {len(errors)}"
+        )
+
+    db = SessionLocal()
+
+    try:
+        import_result = import_holdings(
+            db=db,
+            account_id=args.account_id,
+            holdings=holdings,
+            start_date=date.fromisoformat(args.start_date),
+        )
+
+        print("\n=== DATABASE IMPORT RESULT ===")
+        pprint(import_result)
+
+    finally:
+        db.close()
 
 if __name__ == "__main__":
     main()
