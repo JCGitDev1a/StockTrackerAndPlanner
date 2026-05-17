@@ -6,45 +6,19 @@ from sqlalchemy.orm import Session
 from app.core.finance import annualization_factor, quantize_money
 from app.models.account_position import AccountPosition
 from app.models.dividend_event import DividendEvent
-from app.models.price_history import PriceHistory
 from app.models.security import Security
-from app.models.transaction import Transaction
 from app.schemas.dashboard import PortfolioSummaryResponse
+from app.services.holdings_service import build_holdings_snapshot
 
 
 def calculate_portfolio_summary(
     db: Session,
     account_id: UUID,
 ) -> PortfolioSummaryResponse:
-    transactions = (
-        db.query(Transaction, Security)
-        .join(Security, Security.id == Transaction.security_id)
-        .filter(
-            Transaction.account_id == account_id,
-            Transaction.deleted_at.is_(None),
-        )
-        .all()
+    holdings = build_holdings_snapshot(
+        db=db,
+        account_id=account_id,
     )
-
-    holdings = {}
-
-    for transaction, security in transactions:
-        if security.id not in holdings:
-            holdings[security.id] = {
-                "shares": Decimal("0"),
-                "basis": Decimal("0"),
-                "frequency": security.dividend_frequency,
-            }
-
-        transaction_type = transaction.type.upper()
-
-        if transaction_type in {"BUY", "DRIP_BUY"}:
-            holdings[security.id]["shares"] += transaction.shares or Decimal("0")
-            holdings[security.id]["basis"] += transaction.cash_amount or Decimal("0")
-
-        elif transaction_type == "SELL":
-            holdings[security.id]["shares"] -= transaction.shares or Decimal("0")
-            holdings[security.id]["basis"] -= transaction.cash_amount or Decimal("0")
 
     total_market_value = Decimal("0")
     total_cost_basis = Decimal("0")
@@ -56,37 +30,31 @@ def calculate_portfolio_summary(
 
     holdings_count = 0
 
-    for security_id, holding in holdings.items():
-        if holding["shares"] <= Decimal("0"):
-            continue
-
+    for holding in holdings:
         holdings_count += 1
 
-        latest_price = (
-            db.query(PriceHistory)
-            .filter(PriceHistory.security_id == security_id)
-            .order_by(PriceHistory.price_date.desc())
-            .first()
-        )
-
-        if latest_price is not None:
-            market_value = holding["shares"] * latest_price.price
-
-            total_market_value += market_value
-            total_cost_basis += holding["basis"]
-            total_unrealized_gain_loss += market_value - holding["basis"]
+        total_market_value += holding["market_value"] or Decimal("0")
+        total_cost_basis += holding["total_basis"] or Decimal("0")
+        total_unrealized_gain_loss += holding["unrealized_gain_loss"] or Decimal("0")
 
         latest_dividend = (
             db.query(DividendEvent)
-            .filter(DividendEvent.security_id == security_id)
+            .join(Security, Security.id == DividendEvent.security_id)
+            .filter(Security.symbol == holding["symbol"])
             .order_by(DividendEvent.pay_date.desc())
             .first()
         )
 
         if latest_dividend is not None:
-            factor = annualization_factor(holding["frequency"])
+            factor = annualization_factor(
+                holding["dividend_frequency"]
+            )
 
-            annual_income = holding["shares"] * latest_dividend.amount * factor
+            annual_income = (
+                holding["shares"]
+                * latest_dividend.amount
+                * factor
+            )
 
             annual_dividend_income += annual_income
             quarterly_dividend_income += annual_income / Decimal("4")
