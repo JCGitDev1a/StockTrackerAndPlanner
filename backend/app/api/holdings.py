@@ -1,4 +1,3 @@
-from decimal import Decimal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -7,27 +6,11 @@ from sqlalchemy.orm import Session
 from app.api.auth import get_current_user
 from app.db.session import get_db
 from app.models.account import Account
-from app.models.security import Security
-from app.models.transaction import Transaction
 from app.models.user import User
 from app.schemas.holding import HoldingResponse
-from app.models.price_history import PriceHistory
-from app.core.finance import quantize_money, quantize_price, quantize_shares
+from app.services.holdings_service import build_holdings_snapshot
 
 router = APIRouter(prefix="/accounts/{account_id}/holdings", tags=["holdings"])
-
-
-def get_owned_account(account_id: UUID, current_user: User, db: Session) -> Account:
-    account = (
-        db.query(Account)
-        .filter(Account.id == account_id, Account.user_id == current_user.id)
-        .first()
-    )
-
-    if account is None:
-        raise HTTPException(status_code=404, detail="Account not found")
-
-    return account
 
 
 @router.get("", response_model=list[HoldingResponse])
@@ -36,79 +19,19 @@ def list_holdings(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    get_owned_account(account_id, current_user, db)
-
-    transactions = (
-        db.query(Transaction, Security)
-        .join(Security, Security.id == Transaction.security_id)
+    account = (
+        db.query(Account)
         .filter(
-            Transaction.account_id == account_id,
-            Transaction.deleted_at.is_(None),
+            Account.id == account_id,
+            Account.user_id == current_user.id,
         )
-        .all()
+        .first()
     )
 
-    holdings: dict[UUID, dict] = {}
+    if account is None:
+        raise HTTPException(status_code=404, detail="Account not found")
 
-    for transaction, security in transactions:
-        security_id = security.id
-
-        if security_id not in holdings:
-            holdings[security_id] = {
-                "security_id": security.id,
-                "symbol": security.symbol,
-                "company": security.company,
-                "shares": Decimal("0"),
-                "total_basis": Decimal("0"),
-                "average_cost": None,
-                "current_price": None,
-                "market_value": None,
-                "unrealized_gain_loss": None,
-            }
-
-        transaction_type = transaction.type.upper()
-
-        if transaction_type in {"BUY", "DRIP_BUY"}:
-            holdings[security_id]["shares"] += transaction.shares or Decimal("0")
-            holdings[security_id]["total_basis"] += transaction.cash_amount or Decimal("0")
-
-        elif transaction_type == "SELL":
-            holdings[security_id]["shares"] -= transaction.shares or Decimal("0")
-            holdings[security_id]["total_basis"] -= transaction.cash_amount or Decimal("0")
-
-    results = []
-
-    for holding in holdings.values():
-        if holding["shares"] == Decimal("0"):
-            continue
-
-        holding["average_cost"] = (
-            holding["total_basis"] / holding["shares"]
-            if holding["shares"] != Decimal("0")
-            else None
-        )
-
-        latest_price = (
-            db.query(PriceHistory)
-            .filter(PriceHistory.security_id == holding["security_id"])
-            .order_by(PriceHistory.price_date.desc())
-            .first()
-        )
-
-        if latest_price is not None:
-            holding["current_price"] = latest_price.price
-            holding["market_value"] = holding["shares"] * latest_price.price
-            holding["unrealized_gain_loss"] = (
-                holding["market_value"] - holding["total_basis"]
-            )
-
-        holding["shares"] = quantize_shares(holding["shares"])
-        holding["total_basis"] = quantize_money(holding["total_basis"])
-        holding["average_cost"] = quantize_price(holding["average_cost"])
-        holding["current_price"] = quantize_price(holding["current_price"])
-        holding["market_value"] = quantize_money(holding["market_value"])
-        holding["unrealized_gain_loss"] = quantize_money(holding["unrealized_gain_loss"])
-
-        results.append(HoldingResponse(**holding))
-
-    return results
+    return build_holdings_snapshot(
+        db=db,
+        account_id=account_id,
+    )
