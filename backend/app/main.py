@@ -20,6 +20,7 @@ from app.api.market_data_bulk import router as market_data_bulk_router
 from app.api.market_data_stale import router as market_data_stale_router
 from app.api.market_data_quality import router as market_data_quality_router
 from app.api.dashboard_status import router as dashboard_status_router
+from app.api.performance import router as performance_router
 
 app = FastAPI(title="Stock Tracker and Planner API")
 
@@ -39,6 +40,7 @@ app.include_router(market_data_bulk_router)
 app.include_router(market_data_stale_router)
 app.include_router(market_data_quality_router)
 app.include_router(dashboard_status_router)
+app.include_router(performance_router)
 
 @app.get("/health")
 def health_check():
