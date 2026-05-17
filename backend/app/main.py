@@ -17,6 +17,7 @@ from app.api.dashboard import router as dashboard_router
 from app.api.allocation import router as allocation_router
 from app.api.market_data_admin import router as market_data_admin_router
 from app.api.market_data_bulk import router as market_data_bulk_router
+from app.api.market_data_stale import router as market_data_stale_router
 
 app = FastAPI(title="Stock Tracker and Planner API")
 
@@ -33,6 +34,7 @@ app.include_router(dashboard_router)
 app.include_router(allocation_router)
 app.include_router(market_data_admin_router)
 app.include_router(market_data_bulk_router)
+app.include_router(market_data_stale_router)
 
 @app.get("/health")
 def health_check():
