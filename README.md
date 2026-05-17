@@ -9,10 +9,10 @@ At that point the continued growth is much more impressive and the returns conti
 In my spreadsheet I have two worksheets per account: Current and Future
 
 My Current sheet tracks the following:
-Sym	Company	Qty	B P	B Val	C Price	Curr Value	52 low	52 high	% Hold	Div	Div / Qtr	Div / Yr	Yld Cst	Yld Cur	Div Mnth	# Shr drip/qtr	TTL # 2 B 1/q	Div $ @ 1/q	# Shr till 1/q	$ till 1/Q	# qtrs till 1/Q	# yr till 1/q
+Sym	Company	Qty	B P	B Val	C Price	Curr Value	52 low	52 high	% Hold	Div	Div / Qtr	Div / Yr	Yld Cst	Yld Cur	Div Mnth	\ Shr drip/qtr	TTL \# 2 B 1/q	Div $ @ 1/q	\# Shr till 1/q	$ till 1/Q	\# qtrs till 1/Q	\# yr till 1/q
 
 The Future sheet tracks the following:
-Sym	Company	Cur Qty	Prj Qty	B P	B Val	C Price	Curr Value	G/L	52 low	52 high	% Hold	Div	Div / Qtr	Div / Yr	Yld Cst	Yld Cur	Div Mnth	#ShDrip/Q	TTL # 2B@Q	Div $@BQ	# Shr till B/q	$ till B/Q	# Q till B/Q	# Y till 1/q
+Sym	Company	Cur Qty	Prj Qty	B P	B Val	C Price	Curr Value	G/L	52 low	52 high	% Hold	Div	Div / Qtr	Div / Yr	Yld Cst	Yld Cur	Div Mnth	\#ShDrip/Q	TTL \# 2B@Q	Div $ @BQ	\# Shr till B/q	$ till B/Q	\# Q till B/Q	\# Y till 1/q
 
 The Future sheet links to the Current sheet for current pricing and quantity.  I can also track what a DRIP adds to quantity, future dividends, etc.
 
