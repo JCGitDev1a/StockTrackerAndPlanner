@@ -86,3 +86,38 @@ def create_snapshot(
     db.refresh(snapshot)
 
     return snapshot
+
+@router.get(
+    "",
+    response_model=list[PortfolioSnapshotResponse],
+)
+def list_snapshots(
+    account_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    account = (
+        db.query(Account)
+        .filter(
+            Account.id == account_id,
+            Account.user_id == current_user.id,
+        )
+        .first()
+    )
+
+    if account is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Account not found",
+        )
+
+    return (
+        db.query(PortfolioSnapshot)
+        .filter(
+            PortfolioSnapshot.account_id == account_id,
+        )
+        .order_by(
+            PortfolioSnapshot.snapshot_date.desc()
+        )
+        .all()
+    )
