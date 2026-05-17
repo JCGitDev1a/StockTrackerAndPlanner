@@ -24,6 +24,9 @@ from app.api.performance import router as performance_router
 from app.api.transaction_summary import (
     router as transaction_summary_router,
 )
+from app.api.portfolio_snapshots import (
+    router as portfolio_snapshots_router,
+)
 
 app = FastAPI(title="Stock Tracker and Planner API")
 
@@ -45,6 +48,7 @@ app.include_router(market_data_quality_router)
 app.include_router(dashboard_status_router)
 app.include_router(performance_router)
 app.include_router(transaction_summary_router)
+app.include_router(portfolio_snapshots_router)
 
 @app.get("/health")
 def health_check():

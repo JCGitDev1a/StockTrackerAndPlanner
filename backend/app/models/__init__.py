@@ -7,6 +7,7 @@ from app.models.market_data_cache import MarketDataCache
 from app.models.price_history import PriceHistory
 from app.models.dividend_event import DividendEvent
 from app.models.company_profile import CompanyProfile
+from app.models.portfolio_snapshot import PortfolioSnapshot
 
 __all__ = [
     "User",
