@@ -8,6 +8,12 @@ import {
   Holding,
 } from "@/lib/api";
 
+import {
+  formatCurrency,
+  formatNumber,
+  gainLossColor,
+} from "@/lib/format";
+
 export default function HoldingsPage() {
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [accountName, setAccountName] = useState("");
@@ -121,24 +127,29 @@ export default function HoldingsPage() {
                 </td>
 
                 <td className="p-3 text-right">
-                  {holding.shares}
+                  {formatNumber(holding.shares, 4)}
                 </td>
 
                 <td className="p-3 text-right">
-                  {holding.average_cost ?? "-"}
+                  {formatCurrency(holding.average_cost)}
                 </td>
 
                 <td className="p-3 text-right">
-                  {holding.current_price ?? "-"}
+                  {formatCurrency(holding.current_price)}
                 </td>
 
                 <td className="p-3 text-right">
-                  {holding.market_value ?? "-"}
+                  {formatCurrency(holding.market_value)}
                 </td>
 
-                <td className="p-3 text-right">
-                  {holding.unrealized_gain_loss ??
-                    "-"}
+                <td
+                  className={`p-3 text-right ${gainLossColor(
+                    holding.unrealized_gain_loss
+                  )}`}
+                >
+                  {formatCurrency(
+                    holding.unrealized_gain_loss
+                  )}
                 </td>
               </tr>
             ))}
