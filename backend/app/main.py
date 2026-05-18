@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.api.auth import router as auth_router
 from app.db.session import get_db
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.accounts import router as accounts_router
 from app.api.securities import router as securities_router
@@ -29,6 +30,17 @@ from app.api.portfolio_snapshots import (
 )
 
 app = FastAPI(title="Stock Tracker and Planner API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://10.250.250.225:3000",
+        "http://localhost:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(auth_router)
 app.include_router(accounts_router)

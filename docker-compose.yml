@@ -20,7 +20,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+      - NEXT_PUBLIC_API_BASE_URL=http://10.250.250.225:8000
     depends_on:
       - api
     restart: unless-stopped
