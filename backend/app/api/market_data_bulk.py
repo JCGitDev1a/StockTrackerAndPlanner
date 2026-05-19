@@ -12,6 +12,7 @@ from app.schemas.market_data_bulk import (
     BulkPriceImportResponse,
     BulkPriceItem,
 )
+from app.services.market_data_import_service import import_price_rows
 
 router = APIRouter(
     prefix="/market-data",
@@ -32,47 +33,24 @@ def bulk_price_import(
     skipped = []
     missing_securities = []
 
-    for item in payload:
-        security = (
-            db.query(Security)
-            .filter(Security.symbol == item.symbol.upper())
-            .first()
-        )
+    rows = [
+        {
+            "symbol": item.symbol,
+            "price_date": item.price_date,
+            "price": item.price,
+        }
+        for item in payload
+    ]
 
-        if security is None:
-            missing_securities.append(item.symbol.upper())
-            continue
-
-        existing = (
-            db.query(PriceHistory)
-            .filter(
-                PriceHistory.security_id == security.id,
-                PriceHistory.price_date == item.price_date,
-            )
-            .first()
-        )
-
-        if existing is not None:
-            skipped.append(item.symbol.upper())
-            continue
-
-        price = PriceHistory(
-            security_id=security.id,
-            price_date=item.price_date,
-            price=item.price,
-            source_provider=item.source_provider,
-            source_timestamp=datetime.now(timezone.utc),
-            is_manual_override=True,
-        )
-
-        db.add(price)
-
-        created.append(item.symbol.upper())
-
-    db.commit()
+    result = import_price_rows(
+        db=db,
+        rows=rows,
+        source_provider="manual",
+    )
 
     return BulkPriceImportResponse(
-        created=sorted(set(created)),
-        skipped=sorted(set(skipped)),
-        missing_securities=sorted(set(missing_securities)),
+        created=result["created"],
+        updated=result["updated"],
+        skipped=[],
+        missing_securities=result["missing_securities"],
     )

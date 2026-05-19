@@ -13,5 +13,7 @@ class BulkPriceItem(BaseModel):
 
 class BulkPriceImportResponse(BaseModel):
     created: list[str]
+    updated: list[str]
     skipped: list[str]
     missing_securities: list[str]
+
