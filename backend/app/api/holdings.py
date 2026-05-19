@@ -35,3 +35,33 @@ def list_holdings(
         db=db,
         account_id=account_id,
     )
+
+@router.get("/{symbol}", response_model=HoldingResponse)
+def get_holding(
+    account_id: UUID,
+    symbol: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    account = (
+        db.query(Account)
+        .filter(
+            Account.id == account_id,
+            Account.user_id == current_user.id,
+        )
+        .first()
+    )
+
+    if account is None:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    holdings = build_holdings_snapshot(
+        db=db,
+        account_id=account_id,
+    )
+
+    for holding in holdings:
+        if holding["symbol"].upper() == symbol.upper():
+            return holding
+
+    raise HTTPException(status_code=404, detail="Holding not found")
