@@ -75,3 +75,32 @@ def list_transactions(
         .order_by(Transaction.transaction_date.desc(), Transaction.created_at.desc())
         .all()
     )
+
+@router.get("/symbol/{symbol}", response_model=list[TransactionResponse])
+def list_transactions_by_symbol(
+    account_id: UUID,
+    symbol: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    get_owned_account(account_id, current_user, db)
+
+    security = (
+        db.query(Security)
+        .filter(Security.symbol == symbol.upper())
+        .first()
+    )
+
+    if security is None:
+        raise HTTPException(status_code=404, detail="Security not found")
+
+    return (
+        db.query(Transaction)
+        .filter(
+            Transaction.account_id == account_id,
+            Transaction.security_id == security.id,
+            Transaction.deleted_at.is_(None),
+        )
+        .order_by(Transaction.transaction_date.desc(), Transaction.created_at.desc())
+        .all()
+    )
