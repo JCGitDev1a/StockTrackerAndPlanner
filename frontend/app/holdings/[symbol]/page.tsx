@@ -5,7 +5,9 @@ import { useEffect, useState } from "react";
 import {
   fetchAccounts,
   fetchHolding,
+  fetchHoldingTransactions,
   Holding,
+  Transaction,
 } from "@/lib/api";
 
 import {
@@ -25,6 +27,9 @@ export default function HoldingDetailPage({
 }: HoldingDetailPageProps) {
   const [holding, setHolding] =
     useState<Holding | null>(null);
+
+  const [transactions, setTransactions] =
+    useState<Transaction[]>([]);
 
   const [accountName, setAccountName] =
     useState("");
@@ -64,6 +69,16 @@ export default function HoldingDetailPage({
         );
 
         setHolding(data);
+
+        const transactionData =
+          await fetchHoldingTransactions(
+            account.id,
+            resolvedParams.symbol,
+            token
+          );
+
+        setTransactions(transactionData);
+
       } catch {
         setError("Failed to load holding.");
       }
@@ -151,6 +166,70 @@ export default function HoldingDetailPage({
           )}
         />
       </div>
+      <div className="mt-8">      
+        <h2 className="text-2xl font-bold mb-4">      
+          Recent Transactions      
+        </h2>      
+            
+        <div className="bg-white rounded-xl shadow overflow-x-auto">      
+          <table className="w-full text-sm">      
+            <thead className="bg-gray-200">      
+              <tr>      
+                <th className="text-left p-3">      
+                  Date      
+                </th>      
+            
+                <th className="text-left p-3">      
+                  Type      
+                </th>      
+            
+                <th className="text-right p-3">      
+                  Shares      
+                </th>      
+            
+                <th className="text-right p-3">      
+                  Price      
+                </th>      
+            
+                <th className="text-right p-3">      
+                  Cash Amount      
+                </th>      
+              </tr>      
+            </thead>      
+            
+            <tbody>      
+              {transactions.map((tx) => (      
+                <tr      
+                  key={tx.id}      
+                  className="border-t"      
+                >      
+                  <td className="p-3">      
+                    {tx.transaction_date}      
+                  </td>      
+            
+                  <td className="p-3">      
+                    {tx.type}      
+                  </td>      
+            
+                  <td className="p-3 text-right">      
+                    {formatNumber(tx.shares, 4)}      
+                  </td>      
+            
+                  <td className="p-3 text-right">      
+                    {formatCurrency(tx.price)}      
+                  </td>      
+            
+                  <td className="p-3 text-right">      
+                    {formatCurrency(      
+                      tx.cash_amount      
+                    )}      
+                  </td>      
+                </tr>      
+              ))}      
+            </tbody>      
+          </table>      
+        </div>      
+      </div>      
     </main>
   );
 }
