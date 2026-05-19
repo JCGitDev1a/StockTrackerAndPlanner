@@ -14,6 +14,8 @@ import {
   gainLossColor,
 } from "@/lib/format";
 
+import Link from "next/link";
+
 export default function HoldingsPage() {
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [accountName, setAccountName] = useState("");
@@ -119,8 +121,13 @@ export default function HoldingsPage() {
                 className="border-t"
               >
                 <td className="p-3 font-medium">
-                  {holding.symbol}
-                </td>
+                  <Link
+                    href={`/holdings/${holding.symbol}`}
+                    className="text-blue-600 hover:underline"
+                  >
+                    {holding.symbol}
+                  </Link>
+                </td>                
 
                 <td className="p-3">
                   {holding.company}
