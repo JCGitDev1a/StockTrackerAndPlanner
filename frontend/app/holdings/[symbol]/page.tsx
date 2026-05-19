@@ -10,6 +10,8 @@ import {
   Transaction,
   fetchDividendEvents,
   DividendEvent,
+  fetchPriceHistory,
+  PriceHistoryPoint,
 } from "@/lib/api";
 
 import {
@@ -17,6 +19,8 @@ import {
   formatNumber,
   gainLossColor,
 } from "@/lib/format";
+
+import PriceHistoryChart from "@/components/PriceHistoryChart";
 
 type HoldingDetailPageProps = {
   params: Promise<{
@@ -38,6 +42,9 @@ export default function HoldingDetailPage({
 
   const [dividendEvents, setDividendEvents] =
     useState<DividendEvent[]>([]);
+
+  const [priceHistory, setPriceHistory] =
+    useState<PriceHistoryPoint[]>([]);
 
   const [error, setError] = useState("");
 
@@ -89,7 +96,14 @@ export default function HoldingDetailPage({
           token
         );
 
-setDividendEvents(dividendData);
+        setDividendEvents(dividendData);
+
+        const priceData = await fetchPriceHistory(
+          resolvedParams.symbol,
+          token
+        );
+
+        setPriceHistory(priceData);
 
       } catch {
         setError("Failed to load holding.");
@@ -177,6 +191,10 @@ setDividendEvents(dividendData);
             holding.unrealized_gain_loss
           )}
         />
+      </div>
+
+      <div className="mt-8">
+        <PriceHistoryChart data={priceHistory} />
       </div>
 
       <div className="mt-8">      
