@@ -8,6 +8,8 @@ import {
   fetchHoldingTransactions,
   Holding,
   Transaction,
+  fetchDividendEvents,
+  DividendEvent,
 } from "@/lib/api";
 
 import {
@@ -33,6 +35,9 @@ export default function HoldingDetailPage({
 
   const [accountName, setAccountName] =
     useState("");
+
+  const [dividendEvents, setDividendEvents] =
+    useState<DividendEvent[]>([]);
 
   const [error, setError] = useState("");
 
@@ -78,6 +83,13 @@ export default function HoldingDetailPage({
           );
 
         setTransactions(transactionData);
+
+        const dividendData = await fetchDividendEvents(
+          resolvedParams.symbol,
+          token
+        );
+
+setDividendEvents(dividendData);
 
       } catch {
         setError("Failed to load holding.");
@@ -166,6 +178,7 @@ export default function HoldingDetailPage({
           )}
         />
       </div>
+
       <div className="mt-8">      
         <h2 className="text-2xl font-bold mb-4">      
           Recent Transactions      
@@ -229,7 +242,39 @@ export default function HoldingDetailPage({
             </tbody>      
           </table>      
         </div>      
-      </div>      
+      </div>
+      
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold mb-4">
+          Dividend History
+        </h2>
+      
+        <div className="bg-white rounded-xl shadow overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-200">
+              <tr>
+                <th className="text-left p-3">Ex Date</th>
+                <th className="text-left p-3">Pay Date</th>
+                <th className="text-right p-3">Amount</th>
+                <th className="text-left p-3">Source</th>
+              </tr>
+            </thead>
+      
+            <tbody>
+              {dividendEvents.map((event) => (
+                <tr key={event.id} className="border-t">
+                  <td className="p-3">{event.ex_date ?? "-"}</td>
+                  <td className="p-3">{event.pay_date}</td>
+                  <td className="p-3 text-right">
+                    {formatCurrency(event.amount)}
+                  </td>
+                  <td className="p-3">{event.source_provider}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </main>
   );
 }
