@@ -21,6 +21,51 @@ Later I track how many shares I buy at each DRIP, projected dividend when I am b
 Instead of doing all this manually, this system has been developed to provide a multi-user and multi-account capability in a usable web-based interface with a DB backend.  It will also have the ability to use market API's to get the current and watchlist pricing, market actions (splits), and dividends without having to manually do this.
 
 
-To build:
+## To build:
 
-This is being developed on Ubuntu 24.04 with Docker and Postgressql DB.  Everything else that is required should be contained within the Docker image.
+This is being developed on Ubuntu 24.04 with Docker, Postgressql DB, and Node.js.  Everything else that is required should be contained within the Docker image.
+
+### Docker
+To ensure you have the latest Docker install, use the following:
+
+```bash
+sudo apt install apt-transport-https ca-certificates curl software-properties-common -y
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+```
+
+### Postgressql DB
+The version of Postgressql that comes with Ubuntu 24.04 is perfectly okay to use for our purposes.
+
+### Node.js
+The version of Node.js that comes with Ubuntu is several versions old due it being LTS.  Instead, we should install the 24.x version of Node.js
+
+```bash
+ curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash - sudo apt install -y nodejs
+```
+
+Next, you will need to create the app using the following customized installation steps.
+```bash
+$ npx create-next-app@latest frontend
+Need to install the following packages:
+create-next-app@16.2.6
+Ok to proceed? (y) y
+✔ Would you like to use the recommended Next.js defaults? › No, customize settings
+✔ Would you like to use TypeScript? … No / **Yes**
+✔ Which linter would you like to use? › **ESLint**
+✔ Would you like to use React Compiler? … No / **Yes**
+✔ Would you like to use Tailwind CSS? … No / **Yes**
+✔ Would you like your code inside a `src/` directory? … **No** / Yes
+✔ Would you like to use App Router? (recommended) … No / **Yes**
+✔ Would you like to customize the import alias (`@/*` by default)? … No / **Yes**
+✔ Would you like to include AGENTS.md to guide coding agents to write up-to-date Next.js code? … No / **Yes**
+```
+
+Once it has completed the installation you will need to install **recharts**.
+
+```bash
+cd frontend
+npm install recharts
+cd ..
+```
