@@ -12,6 +12,9 @@ from app.models.user import User
 from app.schemas.performance import PerformanceSummaryResponse
 from app.services.holdings_service import build_holdings_snapshot
 
+from app.schemas.performance_timeline import PortfolioTimelinePoint
+from app.services.portfolio_timeline_service import build_portfolio_timeline
+
 router = APIRouter(
     prefix="/accounts/{account_id}/performance",
     tags=["performance"],
@@ -78,4 +81,30 @@ def performance_summary(
         current_gain_loss_percent=quantize_price(
             current_gain_loss_percent
         ),
+    )
+
+@router.get(
+    "/timeline",
+    response_model=list[PortfolioTimelinePoint],
+)
+def performance_timeline(
+    account_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    account = (
+        db.query(Account)
+        .filter(
+            Account.id == account_id,
+            Account.user_id == current_user.id,
+        )
+        .first()
+    )
+
+    if account is None:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    return build_portfolio_timeline(
+        db=db,
+        account_id=account_id,
     )
