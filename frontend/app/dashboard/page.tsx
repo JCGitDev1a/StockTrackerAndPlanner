@@ -6,13 +6,19 @@ import {
   DashboardSummary,
   fetchAccounts,
   fetchDashboardSummary,
+  fetchPerformanceTimeline,
+  PortfolioTimelinePoint,
 } from "@/lib/api";
+
+import PortfolioTimelineChart from "@/components/PortfolioTimelineChart";
 
 
 export default function DashboardPage() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [accountName, setAccountName] = useState("");
   const [error, setError] = useState("");
+  const [timeline, setTimeline] =
+  useState<PortfolioTimelinePoint[]>([]);
 
   useEffect(() => {
     async function loadDashboard() {
@@ -41,6 +47,14 @@ export default function DashboardPage() {
         );
 
         setSummary(data);
+
+        const timelineData = await fetchPerformanceTimeline(
+          account.id,
+          token
+        );
+
+        setTimeline(timelineData);
+
       } catch {
         setError("Failed to load dashboard.");
       }
@@ -77,6 +91,7 @@ export default function DashboardPage() {
         <DashboardCard title="Annual Income" value={`$${summary.annual_dividend_income}`} />
         <DashboardCard title="Holdings" value={String(summary.holdings_count)} />
       </div>
+      <PortfolioTimelineChart data={timeline} />
     </main>
   );
 }
