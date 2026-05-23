@@ -32,8 +32,8 @@ export default function PortfolioTimelineChart({
         Portfolio Value Timeline
       </h2>
 
-      <div className="w-full h-80">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="w-full h-80 min-w-0 min-h-80">
+        <ResponsiveContainer width="99%" height={320}>
           <LineChart data={chartData}>
             <XAxis dataKey="date" />
             <YAxis domain={["auto", "auto"]} />

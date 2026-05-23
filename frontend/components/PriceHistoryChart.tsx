@@ -32,10 +32,10 @@ export default function PriceHistoryChart({
         Price History
       </h2>
 
-      <div className="w-full h-80">
+      <div className="w-full h-80 min-w-0 min-h-80">
         <ResponsiveContainer
-          width="100%"
-          height="100%"
+          width="99%"
+          height={320}
         >
           <LineChart data={chartData}>
             <XAxis dataKey="date" />
